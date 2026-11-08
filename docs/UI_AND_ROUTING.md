@@ -6,7 +6,7 @@ Ce document détaille les composants de l'interface utilisateur, le design syste
 
 ## 1. Le Design System — Rampe Neutre Chaude
 
-L'interface s'inspire du patrimoine du métro parisien (entourages Art Nouveau, carrelage biseauté) mais l'implémentation actuelle de [`tokens.css`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/styles/tokens.css) **a abandonné les verts profonds au profit d'une rampe neutre chaude** (commentaire de source : « Nouvelle rampe chromatique neutre, chaleur 2 % au lieu de 10 % »). C'est cette rampe qui fait autorité ; l'ancienne palette « Guimard / céramique » n'existe plus que sous forme d'**alias de compatibilité**.
+L'interface s'inspire du patrimoine du métro parisien (entourages Art Nouveau, carrelage biseauté) mais l'implémentation actuelle de [`tokens.css`](web/src/styles/tokens.css) **a abandonné les verts profonds au profit d'une rampe neutre chaude** (commentaire de source : « Nouvelle rampe chromatique neutre, chaleur 2 % au lieu de 10 % »). C'est cette rampe qui fait autorité ; l'ancienne palette « Guimard / céramique » n'existe plus que sous forme d'**alias de compatibilité**.
 
 ### Palette de Couleurs Principales (`tokens.css`)
 
@@ -53,7 +53,7 @@ Les noms historiques (`--guimard`, `--ceramique`, `--fonte`…) fonctionnent don
 
 ## 2. « Le Quai » — Volet Latéral & Tiroir Tactile Mobile (`dock.ts`)
 
-Le composant [`SubwayDock`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/ui/dock.ts) gère la sélection de ligne :
+Le composant [`SubwayDock`](web/src/ui/dock.ts) gère la sélection de ligne :
 
 ### Sur Ordinateur Desktop
 - Rail latéral escamotable fixé sur la gauche de l'écran.
@@ -94,7 +94,7 @@ Inspiré des schémas de ligne officiels affichés au-dessus des portes de rames
 
 ## 4. En-tête, Statuts & Modales (`header.ts` + `main.ts`)
 
-Le composant [`TopBar`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/ui/header.ts) regroupe :
+Le composant [`TopBar`](web/src/ui/header.ts) regroupe :
 
 - **Marque et titre** (lien de retour à l'accueil).
 - **Compteurs** : nombre de lignes, nombre de stations.
@@ -133,7 +133,7 @@ L'application gère un routage d'URL monopage propre et partageable :
 | `/ligne/14?dir=1` | Filtrage sur la ligne 14 orientée vers Saint-Denis Pleyel |
 
 ### Configuration Netlify (`_redirects`)
-Pour que le rafraîchissement d'une URL directe ou un partage de lien (ex: `https://parisian3dsubway.netlify.app/ligne/6`) ne renvoie pas une erreur 404, le fichier [`web/public/_redirects`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/public/_redirects) redirige toutes les requêtes vers `index.html` avec le code HTTP 200 :
+Pour que le rafraîchissement d'une URL directe ou un partage de lien (ex: `https://parisian3dsubway.netlify.app/ligne/6`) ne renvoie pas une erreur 404, le fichier [`web/public/_redirects`](web/public/_redirects) redirige toutes les requêtes vers `index.html` avec le code HTTP 200 :
 ```
 /*    /index.html   200
 ```

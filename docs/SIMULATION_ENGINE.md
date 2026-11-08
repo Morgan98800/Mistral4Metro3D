@@ -16,7 +16,7 @@ Ce document détaille le fonctionnement interne du moteur de circulation autonom
 
 ## 1. Principe Général de la Boucle de Simulation
 
-Le moteur [`BrowserSubwayEngine`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/sim/browser_engine.ts) orchestre la simulation selon **deux fréquences imbriquées** :
+Le moteur [`BrowserSubwayEngine`](web/src/sim/browser_engine.ts) orchestre la simulation selon **deux fréquences imbriquées** :
 
 - un **tick de simulation à 1 Hz** (`setInterval`) qui relit l'heure, sélectionne les courses actives et recalcule les positions exactes ;
 - une **boucle d'interpolation à 60 FPS** (`requestAnimationFrame`) qui extrapole ces positions entre deux ticks pour un rendu fluide (voir §6).
@@ -66,7 +66,7 @@ Le principe retenu est qu'un instant donné appartient à **deux journées de se
 
 Une simple interpolation linéaire ($v = \text{constante}$) donne une impression artificielle : les rames démarrent instantanément à 50 km/h et pilent net à 0 km/h.
 
-Le module [`kinematics.ts`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/sim/kinematics.ts) implémente un **profil de vitesse trapézoïdal physique** sur chaque interstation.
+Le module [`kinematics.ts`](web/src/sim/kinematics.ts) implémente un **profil de vitesse trapézoïdal physique** sur chaque interstation.
 
 > **Deux trapèzes coexistent dans le moteur.** `kinematics.ts` (mode théorique pur) utilise un coefficient de transition fixe $k = 0.25$ et ne dépend que de la géométrie du tracé. `rt_matching.ts` (mode temps réel) possède son propre `trapezoid()` paramétré par une accélération et une décélération physiques (`accel = 1,0 m·s⁻²`, `decel = 1,2 m·s⁻²`) bornées par `vMax = 19,4 m·s⁻¹` (~70 km/h), de sorte que la rame respecte un profil plausible même lorsque la chronologie corrigée lui impose un retard à rattraper.
 
@@ -117,7 +117,7 @@ En fixant le coefficient de transition d'accélération/freinage à $k = 0.25$ (
 
 Une fois l'abscisse curviligne $d$ (en mètres) obtenue, la fonction `getCoordAtDistance` localise instantanément le point géographique correspondant dans le buffer binaire `shapes.bin`.
 
-### Format binaire SHP2 v2 ([`shapes_loader.ts`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/sim/shapes_loader.ts))
+### Format binaire SHP2 v2 ([`shapes_loader.ts`](web/src/sim/shapes_loader.ts))
 Les tracés ne sont **pas** un JSON : `shapes.bin` (804 816 octets, **116 tracés canoniques**) est décodé en `ArrayBuffer` avec le schéma suivant.
 
 | Octet | Champ | Encodage |
@@ -170,7 +170,7 @@ $$d_{\text{estimé}} = d_{\text{tick}} + v \times \Delta t + e_{\text{réconcili
 
 ---
 
-## 7. Matériel Roulant ([`rolling_stock.ts`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/sim/rolling_stock.ts))
+## 7. Matériel Roulant ([`rolling_stock.ts`](web/src/sim/rolling_stock.ts))
 
 Ce module fournit les dimensions physiques nécessaires au dessin des caisses et au calcul de la « corde » rigide entre bogies.
 
@@ -191,7 +191,7 @@ Ce calcul s'actualise en temps réel à chaque départ ou arrivée de rame sur l
 
 ---
 
-## 9. Rapprochement Temps Réel ([`rt_matching.ts`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/sim/rt_matching.ts))
+## 9. Rapprochement Temps Réel ([`rt_matching.ts`](web/src/sim/rt_matching.ts))
 
 Lorsque le flux PRIM est disponible, la cinématique théorique est remplacée par une **chronologie corrigée par course**. Le détail complet figure dans [REALTIME_PRIM.md](REALTIME_PRIM.md) ; les points structurants pour le moteur sont :
 

@@ -80,7 +80,7 @@ Le site est hébergé sur le CDN mondial de Netlify à l'adresse :
 
 ### Déploiement Direct via l'API Netlify
 
-Le dépôt fournit un script dédié, [`scripts/deploy_netlify.py`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/scripts/deploy_netlify.py), qui zippe `web/dist/` en mémoire et l'envoie à l'API Netlify, puis attend le passage à l'état `ready`. Il n'exige **aucune dépendance externe** (bibliothèque standard `urllib`, plus `certifi` s'il est disponible) et lit les identifiants depuis `.env` ou depuis l'environnement :
+Le dépôt fournit un script dédié, [`scripts/deploy_netlify.py`](scripts/deploy_netlify.py), qui zippe `web/dist/` en mémoire et l'envoie à l'API Netlify, puis attend le passage à l'état `ready`. Il n'exige **aucune dépendance externe** (bibliothèque standard `urllib`, plus `certifi` s'il est disponible) et lit les identifiants depuis `.env` ou depuis l'environnement :
 
 ```bash
 python3 scripts/deploy_netlify.py

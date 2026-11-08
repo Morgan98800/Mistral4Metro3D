@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "paris-subway-3d"
+name = "globalmetro3d"
 version = "1.0.0"
-description = "Ingest pipeline and tools for Paris Subway 3D"
+description = "Ingest pipeline and tools for GlobalMetro3D (multi-city 3D transit visualizer)"
 requires-python = ">=3.9"
 dependencies = [
     "requests>=2.31.0",

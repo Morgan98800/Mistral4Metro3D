@@ -3,7 +3,7 @@
 > [!IMPORTANT]
 > **Ce document est une spécification de design, pas une description du code.** Il exprime l'intention esthétique d'origine (une identité prune/or/opalin inspirée de la laque oxblood et du velours des voitures d'origine). L'implémentation livrée a retenu la **structure** de cette charte (mêmes jetons, mêmes rôles, mêmes dimensions) mais a évolué vers une **rampe neutre chaude** — gris légèrement chaud plutôt que prune.
 >
-> Ce qui suit décrit la cible. Pour la vérité terrain, voir [`web/src/styles/tokens.css`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/styles/tokens.css) et [UI_AND_ROUTING.md](UI_AND_ROUTING.md) §1. L'état d'implémentation jeton par jeton est récapitulé en §6.
+> Ce qui suit décrit la cible. Pour la vérité terrain, voir [`web/src/styles/tokens.css`](web/src/styles/tokens.css) et [UI_AND_ROUTING.md](UI_AND_ROUTING.md) §1. L'état d'implémentation jeton par jeton est récapitulé en §6.
 
 ---
 

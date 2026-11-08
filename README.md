@@ -1,4 +1,4 @@
-# 🚇 Métro & RER Parisiens 3D — Visualiseur Cartographique
+# 🌍 GlobalMetro3D — Visualiseur 3D temps réel des réseaux de transport
 
 [![Site en direct](https://img.shields.io/badge/Site%20en%20Direct-parisian3dsubway.netlify.app-00DC82?style=flat-square&logo=netlify)](https://parisian3dsubway.netlify.app)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
@@ -6,9 +6,25 @@
 [![MapLibre GL](https://img.shields.io/badge/MapLibre%20GL-4.7-2980b9?style=flat-square)](https://maplibre.org/)
 [![IDFM PRIM](https://img.shields.io/badge/Donn%C3%A9es-IDFM%20PRIM%20SIRI--Lite-0055A5?style=flat-square)](https://prim.iledefrance-mobilites.fr/)
 
-Application web cartographique modélisant en temps réel la circulation du **métro et RER parisien** sur un jumeau numérique cartographique de Paris.
+Application web cartographique modélisant en temps réel la circulation des réseaux de **Paris (métro + RER), Montréal, Londres, Lille, Washington DC, Berlin et Édimbourg** sur des jumeaux numériques 3D (MapLibre GL + deck.gl, données GTFS + flux temps réel).
 
 Accès direct en production : **[https://parisian3dsubway.netlify.app](https://parisian3dsubway.netlify.app)**
+
+---
+
+## 🏙️ Villes supportées
+
+| Ville | Réseaux | Source temps réel | Relais serveurless |
+| --- | --- | --- | --- |
+| Paris | Métro (16 lignes) + RER (5 lignes) | IDFM PRIM SIRI-Lite | `/api/prim` |
+| Montréal | Métro STM (4 lignes) | STM i3 | `/api/stm` |
+| Londres | Tube, DLR, Elizabeth line, Overground, Tram | TfL Unified API | `/api/tfl_arrivals` |
+| Lille | Métro VAL + Tramway | Ilévia GTFS-RT | `/api/lille-rt` |
+| Washington DC | Metrorail | WMATA GTFS-RT | `/api/washington-rt` |
+| Berlin | U-Bahn + S-Bahn | VBB GTFS-RT | `/api/berlin-rt` |
+| Édimbourg | Trains régionaux ScotRail | Mode théorique GTFS | — |
+
+Chaque ville est décrite par un `cities/<ville>/city.config.ts` (géométrie, cinématique par mode de transport, fournisseur de données temps réel et endpoints de relais). Voir [`cities/index.ts`](cities/index.ts) pour le registre complet.
 
 ---
 
@@ -56,75 +72,33 @@ Accès direct en production : **[https://parisian3dsubway.netlify.app](https://p
 ## 🏛️ Architecture du Projet
 
 ```
-Paris subway 3D/
-├── docs/                        # Documentation technique détaillée
-│   ├── ARCHITECTURE.md          # Architecture logicielle & flux de données
-│   ├── DATA_PIPELINE.md         # Ingestion GTFS, rééchantillonnage & projection
-│   ├── SIMULATION_ENGINE.md     # Moteur cinématique in-browser & profil trapézoïdal
-│   ├── REALTIME_PRIM.md         # Intégration de l'API IDFM PRIM SIRI-Lite
-│   ├── 3D_RENDERING.md          # MapLibre, deck.gl, bâti 3D et matériel roulant
-│   ├── UI_AND_ROUTING.md        # Interface utilisateur, Quai & routage SPA
-│   ├── DEPLOYMENT_AND_OPS.md    # Build, Netlify, en-têtes CDN & exploitation
-│   └── CHARTE-intERVALLE-sprague.md # Charte typographique (spécification)
-│
-├── ingest/                      # Pipeline d'ingestion Python
-│   ├── fetch.py                 # Téléchargement du flux GTFS officiel IDFM
-│   ├── filter_metro.py          # Filtrage strict sur les lignes de métro
-│   ├── resample.py              # Rééchantillonnage métrique à pas fixe
-│   ├── project.py               # Projection curviligne strictement monotone
-│   ├── sections.py              # Inventaire des sections OSM (aérien / sol / souterrain)
-│   ├── rer_artifacts.py         # Artefacts des 5 lignes RER natives
-│   └── main.py                  # Orchestrateur du pipeline complet
-│
-├── scripts/                     # Scripts de traitement & génération
-│   ├── build_line_ladders.py    # Génération de line_ladders.json
-│   ├── build_sections.py        # Section inventory dérivé d'OSM (politique de caméra)
-│   ├── build_station_rankings.py# Rangs de desserte GTFS (semaine / samedi / dimanche)
-│   ├── build_train_box_models.py# Génération clean-room des caisses GLB (1 voiture/fichier)
-│   ├── check_train_box_models.py# Assertion du contrat de rendu sur chaque GLB produit
-│   ├── publish_train_models.py  # Projection des GLB internes vers l'input de build web
-│   ├── generate_tracks_json.py  # Déduplication des tracés (24,6 Ko publiés)
-│   ├── fix_l7_kinks.py          # Ré-encodage des tracés canoniques nettoyés
-│   ├── generate_geo_audit.py    # Régénère docs/cartographie_geographie_reseau.md
-│   └── deploy_netlify.py        # Déploiement ZIP direct via l'API Netlify
-│
+GlobalMetro3D/
+├── cities/                      # Un dossier par ville : config + données + ingest + rt
+│   ├── paris/                   #   city.config.ts, data/, rt/, assets/models/train/
+│   ├── montreal/  london/  lille/  washington/  berlin/  edinburgh/
+│   └── index.ts                 # Registre des villes (CITIES, getCityConfig)
+├── core/                        # Cœur partagé (TypeScript)
+│   ├── sim/                     #   Moteur cinématique in-browser (browser_engine, kinematics, shapes)
+│   ├── ui/                      #   Composants UI & couches carte (MapLibre + deck.gl)
+│   ├── rt/                      #   Recalage temps réel (rt_matching)
+│   ├── ingest/                  #   Pipeline d'ingestion Python (GTFS -> artefacts normalisés)
+│   └── config.ts / types.ts     # Configurations typées par ville et par mode
+├── web/                         # Application front (Vite + TypeScript)
+│   ├── src/main.ts              #   Point d'entrée, orchestration & modales
+│   └── public/                  #   Données servies au client (data/, cities/<ville>/…)
 ├── engine/                      # Service local optionnel (HTTP + WebSocket, port 4000)
-│   ├── src/server.ts            # Serveur, endpoint /health, relais PRIM
-│   ├── src/kinematics.ts        # Cinématique serveur (miroir du moteur web)
-│   ├── src/loader.ts            # Chargement des artefacts locaux
-│   └── tests/                   # Audit contrôles, benchmark FPS, vérification RT
-│
-├── netlify/functions/           # Façade serverless
-│   ├── prim_relay.ts            # Relais PRIM + cache, planifié */3 * * * *
-│   └── prim_delays.ts           # Ré-export de prim_relay
-│
-├── packages/shared/             # Code partagé web ⇄ engine
-│   └── src/                     # constants, lines, protocol, train, index
-│
-├── web/                         # Application Web Front-End (Vite + TypeScript)
-│   ├── public/data/             # Données servies au client
-│   │   ├── lines.json           # Métadonnées des 21 lignes métro + RER
-│   │   ├── stations.json        # 468 stations publiées, dont 164 RER filtrées
-│   │   ├── tracks.json          # 24 tracés de voies dédupliqués (24,6 Ko)
-│   │   ├── shapes.bin           # Buffer binaire SHP2 quantifié (0,80 Mo)
-│   │   ├── shapes.bin.br        # Copie Brotli (0,17 Mo)
-│   │   ├── schedule.json        # 11 252 courses actives de la journée (8,31 Mo)
-│   │   ├── line_ladders.json    # Arborescence des diagrammes de marche (409 Ko)
-│   │   ├── sections.json        # Sections aériennes / sol / souterraines
-│   │   ├── station-rankings.json# Rangs de desserte par station
-│   │   ├── rer_lines.json       # Tracés régionaux filtrés par ligne RER
-│   │   ├── rolling-stock.json   # Matériel roulant & dimensions métriques
-│   │   └── model-assets-manifest.json # Contrat de rendu des GLB de rame
-│   ├── public/models/train/     # 2 caisses GLB clean-room (pneu, fer)
-│   ├── src/
-│   │   ├── main.ts              # Point d'entrée, orchestration & modales
-│   │   ├── map/                 # Couche cartographique (MapLibre + deck.gl)
-│   │   ├── sim/                 # Moteur cinématique, recalage temps réel & PRIM
-│   │   ├── ui/                  # Dock, diagramme vertical, en-tête, recherche
-│   │   ├── state/               # Routeur d'URL SPA
-│   │   └── styles/              # Design tokens CSS & styles
-│   └── package.json
-└── README.md
+├── netlify/functions/           # Relais serverless temps réel (un par ville)
+│   ├── _shared/cors.ts          #   Liste d'origines CORS (jamais de wildcard *)
+│   ├── prim_relay.ts            #   Paris — PRIM SIRI-Lite, planifié */3 * * * *
+│   ├── stm_relay.ts             #   Montréal — STM i3, planifié */2 * * * *
+│   ├── tfl_relay.ts             #   Londres — TfL Unified API, planifié chaque minute
+│   ├── lille_relay.ts           #   Lille — Ilévia GTFS-RT
+│   ├── washington_relay.ts      #   Washington DC — WMATA GTFS-RT
+│   └── berlin_relay.ts          #   Berlin — VBB GTFS-RT
+├── packages/shared/             # Code partagé web <-> engine
+├── scripts/                     # Scripts de génération des artefacts (Python)
+├── tests/                       # Tests unitaires vitest + snapshots de non-régression par ville
+└── docs/                        # Documentation technique détaillée
 ```
 
 ---
@@ -139,8 +113,8 @@ Paris subway 3D/
 
 ```bash
 # 1. Cloner le projet
-git clone https://github.com/Morgan98800/Kerbal-Water.git "Paris subway 3D"
-cd "Paris subway 3D"
+git clone https://github.com/Morgan98800/GlobalMetro3D.git
+cd GlobalMetro3D
 
 # 2. Installer les dépendances (à la racine, workspaces npm)
 npm install
@@ -162,6 +136,12 @@ npm run build:web
 
 Les fichiers statiques prêts pour la production sont générés dans `web/dist/`.
 
+### Variables d'environnement
+
+Copiez [`.env.example`](.env.example) en `.env.local` (Netlify) ou `.env` (local) et renseignez les clés d'API temps réel (`PRIM_API_KEY`, `STM_API_KEY`, `TFL_APP_KEY`, `WMATA_API_KEY`). Sans clé, les relais répondent en mode dégradé sur les horaires théoriques GTFS.
+
+Les relais `/api/*` appliquent une **liste d'origines CORS** : par défaut l'URL Netlify du site (`URL`, `DEPLOY_URL`, `DEPLOY_PRIME_URL`) et les origines `localhost` / `127.0.0.1` de développement. Pour autoriser un domaine supplémentaire, définissez `ALLOWED_ORIGINS=https://exemple.com,https://autre.exemple` (séparées par des virgules). Aucun wildcard `*` n'est jamais émis (voir `netlify/functions/_shared/cors.ts`).
+
 ### Service local optionnel (`engine/`)
 
 ```bash
@@ -177,7 +157,7 @@ Ce service n'est pas nécessaire au fonctionnement du site : il sert aux tests d
 
 ## 📚 Documentation Détaillée
 
-Consultez les guides techniques dédiés dans le dossier [`docs/`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/docs/) :
+Consultez les guides techniques dédiés dans le dossier [`docs/`](docs/) :
 
 - **[Architecture & Flux Global](docs/ARCHITECTURE.md)** : Schémas d'architecture, couches de données, code-splitting et performances.
 - **[Pipeline de Données](docs/DATA_PIPELINE.md)** : Extraction GTFS, projection monotone, formats binaires et optimisations de payload.

@@ -67,7 +67,7 @@ sequenceDiagram
 ```
 
 ### Côté client : `PrimRealtimeClient`
-[`web/src/sim/prim_client.ts`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/sim/prim_client.ts) interroge le snapshot toutes les **180 000 ms** et parcourt une chaîne de replis explicite :
+[`web/src/sim/prim_client.ts`](web/src/sim/prim_client.ts) interroge le snapshot toutes les **180 000 ms** et parcourt une chaîne de replis explicite :
 
 ```
 /api/prim  →  /.netlify/functions/prim_relay  →  /.netlify/functions/prim_delays  →  /data/prim_delays.json

@@ -8,7 +8,7 @@ Ce document décrit en détail le pipeline de traitement des données de transpo
 
 Les données de référence proviennent du portail Open Data d'Île-de-France Mobilités (PRIM / transport.data.gouv.fr) :
 - **Flux GTFS IDFM** : archive compressée de ~111.5 Mo contenant l'intégralité du réseau francilien (métro, RER, trains de banlieue Transilien, trams et bus).
-- Le script [`ingest/src/fetch.py`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/ingest/src/fetch.py) télécharge ce flux avec reprise sur erreur et vérification d'intégrité dans le dossier temporaire `data/raw/`.
+- Le script [`ingest/src/fetch.py`](ingest/src/fetch.py) télécharge ce flux avec reprise sur erreur et vérification d'intégrité dans le dossier temporaire `data/raw/`.
 
 ---
 
@@ -56,7 +56,7 @@ L'algorithme de projection curviligne projette chaque station orthogonalement su
 ### 4. Séparation des Voies par Direction & Résolution des Auto-Intersections (`resample.py`)
 Dans les données GTFS brutes, les tracés des deux sens de circulation d'une ligne sont fréquemment confondus sur un axe médian unique de voirie. Sans séparation, les rames circulant en sens inverse se superposent visuellement.
 
-Le module [`ingest/src/resample.py`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/ingest/src/resample.py) applique un décalage géométrique bilatéral strict :
+Le module [`ingest/src/resample.py`](ingest/src/resample.py) applique un décalage géométrique bilatéral strict :
 - **Voie 1 (`direction_id == 0`)** : décalage latéral de **$+1.8\text{ m}$** vers la droite du sens de marche (convention RATP : circulation à droite).
 - **Voie 2 (`direction_id == 1`)** : décalage latéral de **$-1.8\text{ m}$** vers la gauche.
 - **Entrevoie total résultant** : **$3.6\text{ m}$** (largeur d'entrevoie standard du réseau RATP).
@@ -154,7 +154,7 @@ Définit les caractéristiques géométriques réelles de chaque modèle de trai
 - Attribut `"verified": false` et sources techniques documentées pour chaque ligne.
 
 ### 7. `line_ladders.json` (~409 Ko) — Diagrammes de marche
-Généré par [`scripts/build_line_ladders.py`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/scripts/build_line_ladders.py) :
+Généré par [`scripts/build_line_ladders.py`](scripts/build_line_ladders.py) :
 la séquence commerciale des stations par ligne et par sens, avec les branches séparées
 (lignes 7, 13 et RER). C'est la source du diagramme vertical interactif de l'interface
 (`station_ladder.ts`), qui a besoin de l'ordre des arrêts sans relire `schedule.json` (8,31 Mo).
@@ -164,7 +164,7 @@ la séquence commerciale des stations par ligne et par sens, avec les branches s
 
 ### 8. `model-assets-manifest.json` — Contrat glTF, licences et livrées
 
-Généré par [`scripts/build_train_asset_manifest.py`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/scripts/build_train_asset_manifest.py).
+Généré par [`scripts/build_train_asset_manifest.py`](scripts/build_train_asset_manifest.py).
 
 Le script produit **deux variantes du même manifeste** :
 
@@ -239,7 +239,7 @@ les dimensions et la fidélité des compositions n'ont pas été approuvées.
 
 ## 5. Tests d'Acceptation & Validation (Phase A)
 
-Le script de test automatisé [`ingest/tests/test_acceptance_phase_a.py`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/ingest/tests/test_acceptance_phase_a.py) valide rigoureusement les 5 critères d'acceptation du brief :
+Le script de test automatisé [`ingest/tests/test_acceptance_phase_a.py`](ingest/tests/test_acceptance_phase_a.py) valide rigoureusement les 5 critères d'acceptation du brief :
 
 ```bash
 cd ingest
@@ -258,7 +258,7 @@ pytest tests/test_acceptance_phase_a.py -v
 
 ## 6. Pipeline Réseau de Lille (`cities/lille/ingest/`)
 
-Le script [`cities/lille/ingest/build_lille_artifacts.py`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/cities/lille/ingest/build_lille_artifacts.py) génère l'ensemble des artefacts normalisés pour le réseau Ilévia (Métro VAL et Tramway) :
+Le script [`cities/lille/ingest/build_lille_artifacts.py`](cities/lille/ingest/build_lille_artifacts.py) génère l'ensemble des artefacts normalisés pour le réseau Ilévia (Métro VAL et Tramway) :
 
 ### Données sources
 - **GTFS Théorique Ilévia** (`gtfs.zip`, Licence Ouverte 2.0 MEL).
@@ -287,7 +287,7 @@ Le script [`cities/lille/ingest/build_lille_artifacts.py`](file:///Users/morganc
 
 ## 7. Pipeline Réseau de Washington DC (`cities/washington/ingest/`)
 
-Le script [`cities/washington/ingest/build_washington_artifacts.py`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/cities/washington/ingest/build_washington_artifacts.py) génère l'ensemble des 10 artefacts normalisés pour le réseau Metrorail WMATA :
+Le script [`cities/washington/ingest/build_washington_artifacts.py`](cities/washington/ingest/build_washington_artifacts.py) génère l'ensemble des 10 artefacts normalisés pour le réseau Metrorail WMATA :
 
 ### Données sources
 - **GTFS Statique Officiel WMATA Rail** (`rail-gtfs-static.zip`), requiert la clé d'API WMATA (`WMATA_API_KEY`) ou une fixture locale (`--gtfs-zip`).
@@ -319,7 +319,7 @@ Le script [`cities/washington/ingest/build_washington_artifacts.py`](file:///Use
 
 ## 8. Pipeline Réseau de Berlin U-Bahn (`cities/berlin/ingest/`)
 
-Le script [`cities/berlin/ingest/build_berlin_artifacts.py`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/cities/berlin/ingest/build_berlin_artifacts.py) génère l'ensemble des 10 artefacts normalisés pour le réseau U-Bahn de Berlin (BVG / VBB) :
+Le script [`cities/berlin/ingest/build_berlin_artifacts.py`](cities/berlin/ingest/build_berlin_artifacts.py) génère l'ensemble des 10 artefacts normalisés pour le réseau U-Bahn de Berlin (BVG / VBB) :
 
 ### Données sources & Ingestion par Streaming
 - **GTFS Statique VBB Berlin-Brandenburg** : archive de 77 Mo zippée (609 Mo décompressée). Pour respecter le plafond strict de 400 Mo de RAM, le script lit `stop_times.txt` en **streaming ligne à ligne**, ne conservant en mémoire que les arrêts des courses U-Bahn actives filtrées. Pic mémoire mesuré via `tracemalloc` : **11,8 Mo** (marge de sécurité de 97 %).
@@ -349,7 +349,7 @@ Le script [`cities/berlin/ingest/build_berlin_artifacts.py`](file:///Users/morga
 
 ## 9. Pipeline Réseau d'Édimbourg Tramway (`cities/edinburgh/ingest/`)
 
-Le script [`cities/edinburgh/ingest/build_edinburgh_artifacts.py`](file:///Users/morgancanteri/Documents/Paris%20subway%203D/cities/edinburgh/ingest/build_edinburgh_artifacts.py) génère l'ensemble des 10 artefacts normalisés pour la ligne de tramway d'Édimbourg (Edinburgh Trams, route T50 / 2908) :
+Le script [`cities/edinburgh/ingest/build_edinburgh_artifacts.py`](cities/edinburgh/ingest/build_edinburgh_artifacts.py) génère l'ensemble des 10 artefacts normalisés pour la ligne de tramway d'Édimbourg (Edinburgh Trams, route T50 / 2908) :
 
 ### Données sources & Ingestion
 - **GTFS Statique BODS Écosse (DfT / ITO World)** : archive nationale GTFS couvrant le tramway d'Édimbourg (agence `OP599`, ligne `2908`, `route_type: 0`).

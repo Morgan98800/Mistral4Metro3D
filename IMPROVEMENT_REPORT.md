@@ -59,9 +59,9 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
   1. `package.json:31` defines `"test"` by chaining 20 individual `npm run test:*` commands with `&&`. Each runs a separate `vitest run <file>` node process. This takes **30+ seconds** and hides failures in omitted test files.
   2. Running `npx vitest run` directly runs all 34 test files in **4.76 seconds** (a 6.3x speedup!), but reveals that 7 test files in `tests/` are completely omitted from `package.json` (e.g. `tests/london-vicious-cases.test.ts`, `tests/dst_transitions.test.ts`).
   3. Running `npx tsc --noEmit` from the root fails with 3 compile errors:
-     - [core/sim/browser_engine.ts#L450](file:///Users/morgancanteri/Documents/Paris%20subway%203D/core/sim/browser_engine.ts#L450): `Property 'suppressedTripIds' does not exist on type 'void | RealtimeTickResult'`.
-     - [netlify/functions/lille_relay.ts#L50](file:///Users/morgancanteri/Documents/Paris%20subway%203D/netlify/functions/lille_relay.ts#L50): `Property 'scheduleRelationship' does not exist on type 'IleviaStopTimeUpdate'`.
-     - [tests/london-vicious-cases.test.ts#L23](file:///Users/morgancanteri/Documents/Paris%20subway%203D/tests/london-vicious-cases.test.ts#L23): `Type 'Float32Array' is not assignable to type 'Float64Array'`.
+     - [core/sim/browser_engine.ts#L450](core/sim/browser_engine.ts#L450): `Property 'suppressedTripIds' does not exist on type 'void | RealtimeTickResult'`.
+     - [netlify/functions/lille_relay.ts#L50](netlify/functions/lille_relay.ts#L50): `Property 'scheduleRelationship' does not exist on type 'IleviaStopTimeUpdate'`.
+     - [tests/london-vicious-cases.test.ts#L23](tests/london-vicious-cases.test.ts#L23): `Type 'Float32Array' is not assignable to type 'Float64Array'`.
 - **Why it matters:** Broken typechecks and an excruciating 30-second test loop deter continuous verification and mask latent type bugs across production code.
 - **Recommended fix:**
   - In `core/sim/browser_engine.ts#L450`, check `if (result && 'suppressedTripIds' in result && result.suppressedTripIds)`.
@@ -78,7 +78,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 2. Dynamically Import City Configurations and Realtime Adapters (Bundle Code-Splitting)
 - **What's wrong:**
-  [cities/index.ts#L1-L10](file:///Users/morgancanteri/Documents/Paris%20subway%203D/cities/index.ts#L1-L10) and [cities/realtime.ts#L1-L10](file:///Users/morgancanteri/Documents/Paris%20subway%203D/cities/realtime.ts#L1-L10) statically import every city config, every realtime adapter, every client, and large static dictionaries (such as [cities/berlin/rt/station_map.ts](file:///Users/morgancanteri/Documents/Paris%20subway%203D/cities/berlin/rt/station_map.ts), which is 560 lines).
+  [cities/index.ts#L1-L10](cities/index.ts#L1-L10) and [cities/realtime.ts#L1-L10](cities/realtime.ts#L1-L10) statically import every city config, every realtime adapter, every client, and large static dictionaries (such as [cities/berlin/rt/station_map.ts](cities/berlin/rt/station_map.ts), which is 560 lines).
   Consequently, `web/dist/assets/main-BhZZ2zpQ.js` balloons to **2,632 kB (2.63 MB)**. A user in Paris downloading the page is forced to download all JavaScript code for London, Berlin, Washington, Montreal, Lille, and Edinburgh.
 - **Why it matters:** Slower initial page load (FCP/LCP), high mobile memory pressure, and unnecessary cellular data consumption.
 - **Recommended fix:**
@@ -97,7 +97,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 3. Eliminate Dual Concurrent 3D Engines & Fetch Monkeypatching in Edinburgh View
 - **What's wrong:**
-  1. In [web/src/main.ts#L306-L314](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/main.ts#L306-L314), when `cityConfig.id === 'edinburgh'`, the application overrides global `window.fetch` to intercept hardcoded file strings:
+  1. In [web/src/main.ts#L306-L314](web/src/main.ts#L306-L314), when `cityConfig.id === 'edinburgh'`, the application overrides global `window.fetch` to intercept hardcoded file strings:
      ```ts
      const origFetch = window.fetch;
      window.fetch = function(input, init) {
@@ -107,7 +107,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
        return origFetch(input, init);
      };
      ```
-  2. In [web/src/main.ts#L1110-L1136](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/main.ts#L1110-L1136), Edinburgh mounts a brand-new `Three.js` canvas (`#edinburgh-three-container`) at `z-index: 2` over the active MapLibre GL map and deck.gl overlay. **All three WebGL contexts render simultaneously at 60 FPS**, each with its own render loop, shadow maps, and listeners.
+  2. In [web/src/main.ts#L1110-L1136](web/src/main.ts#L1110-L1136), Edinburgh mounts a brand-new `Three.js` canvas (`#edinburgh-three-container`) at `z-index: 2` over the active MapLibre GL map and deck.gl overlay. **All three WebGL contexts render simultaneously at 60 FPS**, each with its own render loop, shadow maps, and listeners.
 - **Why it matters:** Monkeypatching global `fetch` is brittle and leaks across route changes. Running three active WebGL contexts causes WebGL context loss on mobile devices, drains battery, and spikes GPU memory.
 - **Recommended fix:**
   - Configure the model asset URL properly in `rolling-stock.json` / `city.config.ts` instead of intercepting `fetch`.
@@ -118,9 +118,9 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 4. Migrate Serverless In-Memory State to Netlify Blobs / Edge Storage
 - **What's wrong:**
-  In [netlify/functions/prim_relay.ts#L664-L716](file:///Users/morgancanteri/Documents/Paris%20subway%203D/netlify/functions/prim_relay.ts#L664-L716), caching relies entirely on module-level variables: `let cachedSnapshot: PrimSnapshot | null = null;` and `let lastFetchEpoch = 0;`.
+  In [netlify/functions/prim_relay.ts#L664-L716](netlify/functions/prim_relay.ts#L664-L716), caching relies entirely on module-level variables: `let cachedSnapshot: PrimSnapshot | null = null;` and `let lastFetchEpoch = 0;`.
   The same pattern is repeated in `washington_relay.ts`, `berlin_relay.ts`, and `stm_relay.ts`.
-- **Why it matters:** In serverless architectures (AWS Lambda), container instances are ephemeral. Netlify Scheduled Functions run in their own container and update their own local memory. When users visit the site, their HTTP requests hit different warm or cold containers where `cachedSnapshot === null`. The function then executes [prim_relay.ts#L631-L655](file:///Users/morgancanteri/Documents/Paris%20subway%203D/netlify/functions/prim_relay.ts#L631-L655), querying **21 transit lines sequentially with 150ms delays** (10–15 seconds total). This leads to Netlify gateway timeouts (10s limit on standard tier) and PRIM HTTP 429 rate limits.
+- **Why it matters:** In serverless architectures (AWS Lambda), container instances are ephemeral. Netlify Scheduled Functions run in their own container and update their own local memory. When users visit the site, their HTTP requests hit different warm or cold containers where `cachedSnapshot === null`. The function then executes [prim_relay.ts#L631-L655](netlify/functions/prim_relay.ts#L631-L655), querying **21 transit lines sequentially with 150ms delays** (10–15 seconds total). This leads to Netlify gateway timeouts (10s limit on standard tier) and PRIM HTTP 429 rate limits.
 - **Recommended fix:**
   Store the serialized snapshot in `@netlify/blobs` or an edge KV store (Upstash Redis) with a shared TTL:
   ```ts
@@ -137,13 +137,13 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 5. Remove O(N) Array Spread and Repetitive Normalization in the 1 Hz Engine Loop
 - **What's wrong:**
-  1. In [core/sim/browser_engine.ts#L368-L369](file:///Users/morgancanteri/Documents/Paris%20subway%203D/core/sim/browser_engine.ts#L368-L369):
+  1. In [core/sim/browser_engine.ts#L368-L369](core/sim/browser_engine.ts#L368-L369):
      ```ts
      const firstMetroSeconds = Math.min(...this.trips.map(trip => trip.t0));
      const lastServiceSeconds = Math.max(...this.trips.map(trip => trip.t1));
      ```
      `this.trips` contains **11,252 items** in Paris! Spreading an 11,000-item array into `Math.min` risks `RangeError: Maximum call stack size exceeded`. Furthermore, this allocates two new 11,252-element arrays every second inside `getServiceStatus()`.
-  2. In [core/sim/browser_engine.ts#L480-L491](file:///Users/morgancanteri/Documents/Paris%20subway%203D/core/sim/browser_engine.ts#L480-L491), for every active train on every tick, it re-normalizes string names in a nested loop:
+  2. In [core/sim/browser_engine.ts#L480-L491](core/sim/browser_engine.ts#L480-L491), for every active train on every tick, it re-normalizes string names in a nested loop:
      ```ts
      const isInsideClosedSection = trip.stops.some(s => {
        const normStop = normalizeStopName(s[3]);
@@ -163,12 +163,12 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 6. Remove Hardcoded Paris RER Logic from General Browser Engine
 - **What's wrong:**
-  In [core/sim/browser_engine.ts#L533](file:///Users/morgancanteri/Documents/Paris%20subway%203D/core/sim/browser_engine.ts#L533):
+  In [core/sim/browser_engine.ts#L533](core/sim/browser_engine.ts#L533):
   ```ts
   const maxDisplaySpeed = isRerLine(trip.line) ? 130 : 90;
   const speedKmh = Math.round(Math.min(maxDisplaySpeed, vMps * 3.6));
   ```
-  `browser_engine.ts` directly imports `isRerLine` from [core/rt/rt_matching.ts#L92](file:///Users/morgancanteri/Documents/Paris%20subway%203D/core/rt/rt_matching.ts#L92), which checks a hardcoded set of Paris RER IDs (`IDFM:C01742`, etc.).
+  `browser_engine.ts` directly imports `isRerLine` from [core/rt/rt_matching.ts#L92](core/rt/rt_matching.ts#L92), which checks a hardcoded set of Paris RER IDs (`IDFM:C01742`, etc.).
 - **Why it matters:** In Edinburgh, ScotRail Class 385 trains operate at 160 km/h (defined in `edinburghConfig.modes[0].kinematics.maxSpeedKmh = 160`). Because Edinburgh lines are not in Paris `RER_LINE_IDS`, **their speed is artificially clamped to 90 km/h**. The core simulation engine is tightly coupled to Paris IDs.
 - **Recommended fix:**
   Derive the speed clamp directly from the active line's mode kinematics:
@@ -231,7 +231,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 9. Sanitize HTML String Interpolation in Tooltips & Modals (XSS Prevention)
 - **What's wrong:**
-  In [web/src/main.ts#L655-L660](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/main.ts#L655-L660) and [web/src/main.ts#L717-L733](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/main.ts#L717-L733):
+  In [web/src/main.ts#L655-L660](web/src/main.ts#L655-L660) and [web/src/main.ts#L717-L733](web/src/main.ts#L717-L733):
   ```ts
   tooltipEl.innerHTML = `
     <div class="tooltip-name">${st.name}</div>
@@ -241,7 +241,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
   `;
   ```
   `st.name`, `tr.dest`, and `tr.next` originate from GTFS stop names and real-time headsign strings. They are inserted directly into `innerHTML` without HTML entity encoding.
-  (In [main.ts#L56](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/main.ts#L56), an `escapeHtml` function was written specifically for network records, but never reused for map tooltips).
+  (In [main.ts#L56](web/src/main.ts#L56), an `escapeHtml` function was written specifically for network records, but never reused for map tooltips).
   Additionally, `npm audit` flags a Critical vulnerability in `maplibre-gl <= 6.4.0` for DOM sanitization bypass.
 - **Why it matters:** Third-party transit feeds with unescaped XML or crafted payload strings can execute arbitrary script in the client origin.
 - **Recommended fix:**
@@ -252,7 +252,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 10. Implement Client-Side SPA Transitions and Fail-Safe Loading Recovery
 - **What's wrong:**
-  1. In [web/src/main.ts#L872-L875](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/main.ts#L872-L875):
+  1. In [web/src/main.ts#L872-L875](web/src/main.ts#L872-L875):
      ```ts
      onCitySelect: (cityId: string) => {
        router.setCity(cityId);
@@ -260,7 +260,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
      }
      ```
      Switching cities issues a hard document navigation, forcing the browser to reload the HTML, re-parse 2.6 MB of JS, and re-download MapLibre vector style definitions.
-  2. In [web/src/main.ts#L334-L345](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/main.ts#L334-L345) and [web/src/main.ts#L1168-L1170](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/main.ts#L1168-L1170):
+  2. In [web/src/main.ts#L334-L345](web/src/main.ts#L334-L345) and [web/src/main.ts#L1168-L1170](web/src/main.ts#L1168-L1170):
      `Promise.all` fetches 9 resources simultaneously. If any one of them fails (network glitch, missing file), the top-level promise rejects into:
      ```ts
      bootstrap().catch(err => console.error('[app] Bootstrap error:', err));
@@ -278,18 +278,18 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 *High-impact, low-effort changes that can be implemented today.*
 
 1. **Delete Dead Git-Tracked PNGs in `audit/design/`:**
-   - [audit/design/](file:///Users/morgancanteri/Documents/Paris%20subway%203D/audit/design/) contains 81 files (over 60 MB) of historical audit screenshots from September 2026. Remove them from git tracking (`git rm -r audit/design/*.png`) to reduce clone weight.
+   - [audit/design/](audit/design/) contains 81 files (over 60 MB) of historical audit screenshots from September 2026. Remove them from git tracking (`git rm -r audit/design/*.png`) to reduce clone weight.
 2. **Remove Unused Empty / Stale Directories:**
    - Remove `assets-src/` (contains only `.DS_Store`).
    - Clean up `fixing du 3D/` (contains redundant copies of `capsule_layer.ts`, etc.).
 3. **Remove Stale `.js` Files in `engine/src/`:**
-   - [engine/src/](file:///Users/morgancanteri/Documents/Paris%20subway%203D/engine/src/) has both `server.ts` and `server.js`, `kinematics.ts` and `kinematics.js`. Remove `.js` files from version control and add them to `.gitignore`.
+   - [engine/src/](engine/src/) has both `server.ts` and `server.js`, `kinematics.ts` and `kinematics.js`. Remove `.js` files from version control and add them to `.gitignore`.
 4. **Fix Missing Pointer Capture on Bottom Sheet Drag:**
-   - In [core/ui/components/dock.ts#L149-L155](file:///Users/morgancanteri/Documents/Paris%20subway%203D/core/ui/components/dock.ts#L149-L155), call `(event.target as HTMLElement).setPointerCapture(event.pointerId)` on `pointerdown` to ensure `pointermove` and `pointerup` continue tracking when the user's touch moves outside the handle.
+   - In [core/ui/components/dock.ts#L149-L155](core/ui/components/dock.ts#L149-L155), call `(event.target as HTMLElement).setPointerCapture(event.pointerId)` on `pointerdown` to ensure `pointermove` and `pointerup` continue tracking when the user's touch moves outside the handle.
 5. **Add HTTP Security Headers in Netlify Config:**
-   - In [netlify.toml](file:///Users/morgancanteri/Documents/Paris%20subway%203D/netlify.toml), add standard security headers: `X-Frame-Options = "DENY"`, `X-Content-Type-Options = "nosniff"`, and `Referrer-Policy = "strict-origin-when-cross-origin"`.
+   - In [netlify.toml](netlify.toml), add standard security headers: `X-Frame-Options = "DENY"`, `X-Content-Type-Options = "nosniff"`, and `Referrer-Policy = "strict-origin-when-cross-origin"`.
 6. **Pre-calculate Static Service Bounds:**
-   - In [core/sim/browser_engine.ts#L368](file:///Users/morgancanteri/Documents/Paris%20subway%203D/core/sim/browser_engine.ts#L368), replace `Math.min(...this.trips.map(...))` with pre-calculated `this.minT0` and `this.maxT1` properties.
+   - In [core/sim/browser_engine.ts#L368](core/sim/browser_engine.ts#L368), replace `Math.min(...this.trips.map(...))` with pre-calculated `this.minT0` and `this.maxT1` properties.
 
 ---
 
@@ -297,21 +297,21 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 1. Architecture & Design
 - **[Finding 1.1] Hollow `@paris-subway/shared` Workspace Package:**
-  [packages/shared/src/index.ts#L1](file:///Users/morgancanteri/Documents/Paris%20subway%203D/packages/shared/src/index.ts#L1) contains solely `export * from "../../../core";`. Meanwhile, [tsconfig.json#L13](file:///Users/morgancanteri/Documents/Paris%20subway%203D/tsconfig.json#L13) aliases `@paris-subway/shared` to `core/index.ts`. This creates circular workspace dependencies and breaks standard npm package resolution.
+  [packages/shared/src/index.ts#L1](packages/shared/src/index.ts#L1) contains solely `export * from "../../../core";`. Meanwhile, [tsconfig.json#L13](tsconfig.json#L13) aliases `@paris-subway/shared` to `core/index.ts`. This creates circular workspace dependencies and breaks standard npm package resolution.
   *Fix:* Either make `core` a proper workspace package (`packages/core`) or delete `packages/shared` and use `@core/*` aliases everywhere.
   *Impact:* Medium | *Effort:* S | *Confidence:* High
 - **[Finding 1.2] God-Object Anti-Pattern in `web/src/main.ts`:**
-  [web/src/main.ts](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/main.ts) is 1,170 lines long and handles DOM querying, camera pitch policies, recenter hysteresis calculation, HTML generation for tooltips, SVG modal construction, fetch patching, deck.gl orchestration, and event listeners.
+  [web/src/main.ts](web/src/main.ts) is 1,170 lines long and handles DOM querying, camera pitch policies, recenter hysteresis calculation, HTML generation for tooltips, SVG modal construction, fetch patching, deck.gl orchestration, and event listeners.
   *Fix:* Split into `ApplicationController`, `MapViewController`, and `ModalManager`.
   *Impact:* High | *Effort:* M | *Confidence:* High
 
 ### 2. Code Quality & Maintainability
 - **[Finding 2.1] Duplicated Protobuf Handlers in Serverless Relays:**
-  [netlify/functions/washington_relay.ts#L65-L168](file:///Users/morgancanteri/Documents/Paris%20subway%203D/netlify/functions/washington_relay.ts#L65-L168), [netlify/functions/berlin_relay.ts#L59-L154](file:///Users/morgancanteri/Documents/Paris%20subway%203D/netlify/functions/berlin_relay.ts#L59-L154), and [netlify/functions/lille_relay.ts#L31-L109](file:///Users/morgancanteri/Documents/Paris%20subway%203D/netlify/functions/lille_relay.ts#L31-L109) contain nearly identical low-level Pbf Protobuf decoding functions (`readStopTimeEvent`, `readStopTimeUpdate`, `readTripDescriptor`).
+  [netlify/functions/washington_relay.ts#L65-L168](netlify/functions/washington_relay.ts#L65-L168), [netlify/functions/berlin_relay.ts#L59-L154](netlify/functions/berlin_relay.ts#L59-L154), and [netlify/functions/lille_relay.ts#L31-L109](netlify/functions/lille_relay.ts#L31-L109) contain nearly identical low-level Pbf Protobuf decoding functions (`readStopTimeEvent`, `readStopTimeUpdate`, `readTripDescriptor`).
   *Fix:* Extract common GTFS-RT Protobuf decoders into a shared file in `core/rt/gtfs_rt_pbf.ts`.
   *Impact:* Medium | *Effort:* S | *Confidence:* High
 - **[Finding 2.2] Kinematics Code Drift Between `core` and `engine`:**
-  [core/sim/kinematics.ts](file:///Users/morgancanteri/Documents/Paris%20subway%203D/core/sim/kinematics.ts) and [engine/src/kinematics.ts](file:///Users/morgancanteri/Documents/Paris%20subway%203D/engine/src/kinematics.ts) duplicate bearing calculation and curvilinear interpolation. However, `engine` rounds bearing to integers (`Math.round`), while `core` does not.
+  [core/sim/kinematics.ts](core/sim/kinematics.ts) and [engine/src/kinematics.ts](engine/src/kinematics.ts) duplicate bearing calculation and curvilinear interpolation. However, `engine` rounds bearing to integers (`Math.round`), while `core` does not.
   *Fix:* Make `engine` import directly from `@core/sim/kinematics`.
   *Impact:* Medium | *Effort:* S | *Confidence:* High
 
@@ -321,7 +321,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
   *Fix:* Defer `rer_schedule.json`, `station-rankings.json`, and `line_ladders.json` until the user actually selects a line or opens the Quai ladder. Serve `schedule.json` pre-compressed with Brotli (`schedule.json.br`) via Netlify headers.
   *Impact:* High | *Effort:* M | *Confidence:* High
 - **[Finding 3.2] Synchronous DOM Resizing on Window Resize:**
-  In [web/src/main.ts#L570-L582](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/src/main.ts#L570-L582), resize listeners trigger camera refits and attribution measurements without `requestAnimationFrame` debouncing.
+  In [web/src/main.ts#L570-L582](web/src/main.ts#L570-L582), resize listeners trigger camera refits and attribution measurements without `requestAnimationFrame` debouncing.
   *Fix:* Debounce with `requestAnimationFrame` to prevent layout thrashing.
   *Impact:* Low | *Effort:* S | *Confidence:* High
 
@@ -335,13 +335,13 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
   *Fix:* Upgrade dependencies via `npm update maplibre-gl @deck.gl/core vite`.
   *Impact:* Critical | *Effort:* S | *Confidence:* High
 - **[Finding 4.2] Direct File System Read of `.env.local` in Serverless Functions:**
-  In [netlify/functions/washington_relay.ts#L45-L57](file:///Users/morgancanteri/Documents/Paris%20subway%203D/netlify/functions/washington_relay.ts#L45-L57) and [prim_relay.ts#L9-L21](file:///Users/morgancanteri/Documents/Paris%20subway%203D/netlify/functions/prim_relay.ts#L9-L21), production functions parse `.env.local` from `process.cwd()` using `fs.readFileSync`.
+  In [netlify/functions/washington_relay.ts#L45-L57](netlify/functions/washington_relay.ts#L45-L57) and [prim_relay.ts#L9-L21](netlify/functions/prim_relay.ts#L9-L21), production functions parse `.env.local` from `process.cwd()` using `fs.readFileSync`.
   *Fix:* Rely strictly on environment variables injected by Netlify (`process.env.WMATA_API_KEY`, etc.).
   *Impact:* Medium | *Effort:* S | *Confidence:* High
 
 ### 5. Reliability & Error Handling
 - **[Finding 5.1] Sequential Upstream Network Requests with Insufficient Timeout:**
-  In [netlify/functions/prim_relay.ts#L631-L655](file:///Users/morgancanteri/Documents/Paris%20subway%203D/netlify/functions/prim_relay.ts#L631-L655), 21 transit lines are queried sequentially with a 150ms sleep between each. If IDFM PRIM responds with 500ms latency per request, total execution time is $(21 \times 500\text{ms}) + (20 \times 150\text{ms}) = 13.5\text{s}$, exceeding Netlify's 10-second default execution limit.
+  In [netlify/functions/prim_relay.ts#L631-L655](netlify/functions/prim_relay.ts#L631-L655), 21 transit lines are queried sequentially with a 150ms sleep between each. If IDFM PRIM responds with 500ms latency per request, total execution time is $(21 \times 500\text{ms}) + (20 \times 150\text{ms}) = 13.5\text{s}$, exceeding Netlify's 10-second default execution limit.
   *Fix:* Query in batches of 4 concurrent requests with an `AbortSignal.timeout(4000)` per request.
   *Impact:* High | *Effort:* S | *Confidence:* High
 - **[Finding 5.2] Silent Failure on Empty Catch Blocks:**
@@ -351,7 +351,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 6. Testing & Quality Assurance
 - **[Finding 6.1] Python Test Suite Fails Out-of-the-Box:**
-  Running `pytest` fails with `ModuleNotFoundError: No module named 'core'`. Running with `PYTHONPATH=. pytest` fails 4 tests in `test_acceptance_phase_a.py` and `test_acceptance_phase_b_rer.py` due to missing tables in `network.sqlite` ([test_acceptance_phase_a.py#L352](file:///Users/morgancanteri/Documents/Paris%20subway%203D/core/ingest/tests/test_acceptance_phase_a.py#L352)).
+  Running `pytest` fails with `ModuleNotFoundError: No module named 'core'`. Running with `PYTHONPATH=. pytest` fails 4 tests in `test_acceptance_phase_a.py` and `test_acceptance_phase_b_rer.py` due to missing tables in `network.sqlite` ([test_acceptance_phase_a.py#L352](core/ingest/tests/test_acceptance_phase_a.py#L352)).
   *Fix:* Add `pyproject.toml` or `setup.cfg` to declare `core` as an editable package, and provide a test SQLite fixture.
   *Impact:* High | *Effort:* S | *Confidence:* High
 - **[Finding 6.2] Missing End-to-End (E2E) Browser Tests:**
@@ -361,7 +361,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 7. Dependencies
 - **[Finding 7.1] Mismatched Deck.gl & Luma.gl Minor Versions:**
-  In [web/package.json#L13-L20](file:///Users/morgancanteri/Documents/Paris%20subway%203D/web/package.json#L13-L20):
+  In [web/package.json#L13-L20](web/package.json#L13-L20):
   - `@deck.gl/core`: `^9.1.4`
   - `@deck.gl/layers`: `^9.1.4`
   - `@deck.gl/mesh-layers`: `^9.4.0` (3 minor versions ahead!)
@@ -371,7 +371,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 8. Developer Experience (DX)
 - **[Finding 8.1] Build Script Tight Coupling to Python:**
-  In [package.json#L11](file:///Users/morgancanteri/Documents/Paris%20subway%203D/package.json#L11):
+  In [package.json#L11](package.json#L11):
   `"build:web": "python3 scripts/publish_train_models.py && python3 scripts/build_train_asset_manifest.py ... && npm --workspace=web run build"`.
   Front-end developers cannot build or test the web client without having Python 3 installed with specific path configurations.
   *Fix:* Pre-generate `model-assets-manifest.json` on commit or convert manifest generation to a lightweight Node.js script.
@@ -379,7 +379,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 9. User Experience & Accessibility
 - **[Finding 9.1] Bottom Sheet Touch Lockup on Fast Drag:**
-  In [core/ui/components/dock.ts#L153-L155](file:///Users/morgancanteri/Documents/Paris%20subway%203D/core/ui/components/dock.ts#L153-L155), `pointermove` and `pointerup` are attached to `this.dockEl` rather than `window`. If the user drags quickly and their finger leaves the dock boundary, `pointerup` never fires and the sheet stays frozen in dragging mode.
+  In [core/ui/components/dock.ts#L153-L155](core/ui/components/dock.ts#L153-L155), `pointermove` and `pointerup` are attached to `this.dockEl` rather than `window`. If the user drags quickly and their finger leaves the dock boundary, `pointerup` never fires and the sheet stays frozen in dragging mode.
   *Fix:* Attach `pointermove` and `pointerup` to `window` or invoke `setPointerCapture`.
   *Impact:* High | *Effort:* S | *Confidence:* High
 - **[Finding 9.2] Lack of Screen Reader Announcements for Live Transit Updates:**
@@ -389,7 +389,7 @@ The application is a browser-based, high-framerate 3D digital twin of public tra
 
 ### 10. Documentation
 - **[Finding 10.1] Documentation Inconsistency with Current Codebase:**
-  [README.md#L1](file:///Users/morgancanteri/Documents/Paris%20subway%203D/README.md#L1) describes the project purely as "Métro & RER Parisiens 3D". The directory tree in `README.md` shows `web/src/map`, `web/src/sim`, and `web/src/ui`, all of which were moved to `core/` months ago. The 6 other cities are completely unmentioned.
+  [README.md#L1](README.md#L1) describes the project purely as "Métro & RER Parisiens 3D". The directory tree in `README.md` shows `web/src/map`, `web/src/sim`, and `web/src/ui`, all of which were moved to `core/` months ago. The 6 other cities are completely unmentioned.
   *Fix:* Rewrite `README.md` to document the multi-city platform architecture, `/cities` directory layout, and city onboarding procedure.
   *Impact:* Medium | *Effort:* S | *Confidence:* High
 
@@ -474,7 +474,7 @@ When refactoring, take care not to disrupt these standout architectural achievem
 2. **Compact Binary Geometry Format (`shapes.bin` / SHP2):**
    The custom binary track representation (quantized coordinates, delta encoding, and Brotli compression) keeps massive railway geometries lightweight (Paris tracks at 24.6 KB, shapes at 170 KB Brotli). This is world-class bandwidth stewardship.
 3. **Rigorous Snapshot Regression Testing:**
-   The snapshot safety tests (e.g., [tests/paris-snapshot.test.ts](file:///Users/morgancanteri/Documents/Paris%20subway%203D/tests/paris-snapshot.test.ts), [tests/london-snapshot.test.ts](file:///Users/morgancanteri/Documents/Paris%20subway%203D/tests/london-snapshot.test.ts)) asserting train positions within **0.0000 m delta** ensure that changes to the simulation engine or schedule parsing cannot silently cause spatial drift.
+   The snapshot safety tests (e.g., [tests/paris-snapshot.test.ts](tests/paris-snapshot.test.ts), [tests/london-snapshot.test.ts](tests/london-snapshot.test.ts)) asserting train positions within **0.0000 m delta** ensure that changes to the simulation engine or schedule parsing cannot silently cause spatial drift.
 4. **Clean Design Tokens & Typography:**
    The styling foundation in `core/ui/styles/` (`tokens.css`, `typography.css`, `chrome.css`) adhering to the Switzer / Cabinet Grotesk / tabular numerals specification gives the user interface an authentic Parisian transit agency feel.
 5. **Multi-Tier Confidence Visualization:**
