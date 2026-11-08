@@ -1,6 +1,7 @@
 import https from 'https';
 import Pbf from 'pbf';
 import type { LineTrafficReport } from '../../core/types';
+import { corsHeaders, isPreflight, preflightResponse } from './_shared/cors';
 import type {
   IleviaStopTimeEvent,
   IleviaStopTimeUpdate,
@@ -269,14 +270,15 @@ export async function getOrFetchIleviaSnapshot(
   };
 }
 
-export const handler = async () => {
+export const handler = async (event: any = {}) => {
+  if (isPreflight(event)) return preflightResponse(event);
   const snapshot = await getOrFetchIleviaSnapshot();
   return {
     statusCode: 200,
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'public, max-age=15, s-maxage=30',
-      'Access-Control-Allow-Origin': '*',
+      ...corsHeaders(event),
     },
     body: JSON.stringify(snapshot),
   };

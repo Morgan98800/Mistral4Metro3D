@@ -2,6 +2,7 @@ import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import type { LineTrafficReport } from '../../core/types';
+import { corsHeaders, isPreflight, preflightResponse } from './_shared/cors';
 
 export function getTflApiKey(): string {
   if (process.env.TFL_APP_KEY) return process.env.TFL_APP_KEY.trim();
@@ -354,6 +355,7 @@ export async function fetchTflData(): Promise<TflSnapshot> {
 }
 
 export const handler = async (event: any = {}, context: any = {}) => {
+  if (isPreflight(event)) return preflightResponse(event);
   const snapshot = await fetchTflData();
 
   return {
@@ -361,7 +363,7 @@ export const handler = async (event: any = {}, context: any = {}) => {
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'public, max-age=15, stale-while-revalidate=30',
-      'Access-Control-Allow-Origin': '*',
+      ...corsHeaders(event),
     },
     body: JSON.stringify(snapshot),
   };

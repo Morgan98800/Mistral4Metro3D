@@ -1,6 +1,7 @@
 import https from 'https';
 import fs from 'fs';
 import path from 'path';
+import { corsHeaders, isPreflight, preflightResponse } from './_shared/cors';
 import type { LineTrafficReport } from '../../core/types';
 
 export function getStmApiKey(): string {
@@ -398,7 +399,8 @@ export async function fetchStmEtatService(
   });
 }
 
-export const handler = async (event: any, context: any) => {
+export const handler = async (event: any = {}, context: any = {}) => {
+  if (isPreflight(event)) return preflightResponse(event);
   const now = Date.now();
   const apiKey = getStmApiKey();
   const origin = (process.env.STM_ORIGIN || 'https://parisian3dsubway.netlify.app').trim();
@@ -424,6 +426,7 @@ export const handler = async (event: any, context: any) => {
         'Cache-Control': 'public, max-age=120, s-maxage=300',
         'X-STM-Healthy': 'true',
         'X-STM-Operating': 'false',
+        ...corsHeaders(event),
       },
       body: JSON.stringify(overnightSnapshot),
     };
@@ -438,6 +441,7 @@ export const handler = async (event: any, context: any) => {
         'Cache-Control': 'public, max-age=60, s-maxage=120',
         'X-STM-Healthy': cachedSnapshot.feedHealthy ? 'true' : 'false',
         'X-STM-Cached': 'true',
+        ...corsHeaders(event),
       },
       body: JSON.stringify(cachedSnapshot),
     };
@@ -464,6 +468,7 @@ export const handler = async (event: any, context: any) => {
         'Cache-Control': 'public, max-age=60, s-maxage=120',
         'X-STM-Healthy': 'false',
         'X-STM-Reason': 'no-key',
+        ...corsHeaders(event),
       },
       body: JSON.stringify(nominalSnapshot),
     };
@@ -493,6 +498,7 @@ export const handler = async (event: any, context: any) => {
         'Content-Type': 'application/json; charset=utf-8',
         'Cache-Control': 'public, max-age=60, s-maxage=120',
         'X-STM-Healthy': 'true',
+        ...corsHeaders(event),
       },
       body: JSON.stringify(newSnapshot),
     };
@@ -514,6 +520,7 @@ export const handler = async (event: any, context: any) => {
         'Cache-Control': 'public, max-age=30, s-maxage=60',
         'X-STM-Healthy': 'false',
         'X-STM-Degraded': 'true',
+        ...corsHeaders(event),
       },
       body: JSON.stringify(cachedSnapshot),
     };
@@ -537,6 +544,7 @@ export const handler = async (event: any, context: any) => {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'public, max-age=30, s-maxage=60',
       'X-STM-Healthy': 'false',
+      ...corsHeaders(event),
     },
     body: JSON.stringify(fallbackSnapshot),
   };

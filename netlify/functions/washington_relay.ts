@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import Pbf from 'pbf';
 import type { LineTrafficReport } from '../../core/types';
+import { corsHeaders, isPreflight, preflightResponse } from './_shared/cors';
 import type {
   WashingtonStopTimeEvent,
   WashingtonStopTimeUpdate,
@@ -928,7 +929,8 @@ export async function getOrFetchWashingtonSnapshot(
   return { snapshot, fromCache: false, isFixture: !apiKey };
 }
 
-export const handler = async () => {
+export const handler = async (event: any = {}) => {
+  if (isPreflight(event)) return preflightResponse(event);
   const now = Date.now();
   const { snapshot, isFixture } = await getOrFetchWashingtonSnapshot(getWmataApiKey(), now);
 
@@ -936,7 +938,7 @@ export const handler = async () => {
     'Content-Type': 'application/json',
     'Cache-Control': `public, max-age=10, s-maxage=${CACHE_TTL_SEC}, stale-while-revalidate=5`,
     'Netlify-CDN-Cache-Control': `public, s-maxage=${CACHE_TTL_SEC}`,
-    'Access-Control-Allow-Origin': '*',
+    ...corsHeaders(event),
   };
 
   if (isFixture) {

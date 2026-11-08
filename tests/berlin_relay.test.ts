@@ -272,7 +272,21 @@ describe('Relais Netlify berlin_relay', () => {
       expect(response.statusCode).toBe(200);
       expect(response.headers['Content-Type']).toBe('application/json');
       expect(response.headers['Netlify-CDN-Cache-Control']).toContain(`s-maxage=${CACHE_TTL_SEC}`);
-      expect(response.headers['Access-Control-Allow-Origin']).toBe('*');
+      // Sans en-tête Origin (appel same-origin), aucun CORS n'est émis — jamais de wildcard.
+      expect(response.headers['Access-Control-Allow-Origin']).toBeUndefined();
+
+      const preflight = await handler({
+        httpMethod: 'OPTIONS',
+        headers: { origin: 'http://localhost:3000' },
+      });
+      expect(preflight.statusCode).toBe(204);
+      expect(preflight.headers['Access-Control-Allow-Origin']).toBe('http://localhost:3000');
+
+      const denied = await handler({
+        httpMethod: 'GET',
+        headers: { origin: 'https://untrusted.example' },
+      });
+      expect(denied.headers['Access-Control-Allow-Origin']).toBeUndefined();
 
       const body = JSON.parse(response.body);
       expect(body).toHaveProperty('feedHealthy');
