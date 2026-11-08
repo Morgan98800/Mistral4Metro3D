@@ -245,7 +245,7 @@ function openAboutModal(activeCityConfig: CityConfig = parisConfig) {
   modal.innerHTML = `
     <div class="about-sheet" role="dialog" aria-modal="true" aria-labelledby="about-title">
       <header class="about-sheet__header">
-        <h2 id="about-title">À propos — ${activeCityConfig.displayName.toUpperCase()}</h2>
+        <h2 id="about-title">À propos — ${escapeHtml(activeCityConfig.displayName.toUpperCase())}</h2>
         <button type="button" class="about-sheet__close" aria-label="Fermer">×</button>
       </header>
       <div class="about-sheet__body">
@@ -253,8 +253,8 @@ function openAboutModal(activeCityConfig: CityConfig = parisConfig) {
           <div class="about-item__ticket">${cardGraphic}</div>
           <div class="about-item__content">
             <h3 class="about-item__title">Données</h3>
-            <p class="about-item__text">Données d'offre : <strong>${attrib.datasetName}</strong></p>
-            <p class="about-item__text">Exploitant : <strong>${attrib.operatorName}</strong></p>
+            <p class="about-item__text">Données d'offre : <strong>${escapeHtml(attrib.datasetName)}</strong></p>
+            <p class="about-item__text">Exploitant : <strong>${escapeHtml(attrib.operatorName)}</strong></p>
             ${rtHtml}
           </div>
         </section>
@@ -262,7 +262,7 @@ function openAboutModal(activeCityConfig: CityConfig = parisConfig) {
           <div class="about-item__ticket">${cardGraphic}</div>
           <div class="about-item__content">
             <h3 class="about-item__title">Licences</h3>
-            <p class="about-item__text">Données de transport : <a href="${attrib.licenseUrl}" target="_blank" rel="noopener"><strong>${attrib.licenseText}</strong></a></p>
+            <p class="about-item__text">Données de transport : <a href="${/^https?:\/\//i.test(attrib.licenseUrl) ? attrib.licenseUrl : '#'}" target="_blank" rel="noopener"><strong>${escapeHtml(attrib.licenseText)}</strong></a></p>
             ${activeCityConfig.id === 'edinburgh' ? '<p class="about-item__text">Relief & Bâti 3D : <strong>Scottish Government & Fugro (2021)</strong> (OGL v3.0)</p>' : ''}
             <p class="about-item__text">Fond cartographique : <strong>OpenMapTiles · OpenStreetMap</strong> (ODbL)</p>
             <p class="about-item__text">Hébergement tuiles : <strong>OpenFreeMap</strong></p>
@@ -273,7 +273,7 @@ function openAboutModal(activeCityConfig: CityConfig = parisConfig) {
           <div class="about-item__ticket">${cardGraphic}</div>
           <div class="about-item__content">
             <h3 class="about-item__title">Mentions</h3>
-            <p class="about-item__text">${attrib.disclaimer}</p>
+            <p class="about-item__text">${escapeHtml(attrib.disclaimer)}</p>
             <a href="/methode" target="_blank" rel="noopener" class="about-item__link">Consulter la méthode complète <span aria-hidden="true">→</span></a>
           </div>
         </section>

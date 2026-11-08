@@ -292,7 +292,7 @@ export class SubwayDock {
 
   public setLoadingState(message: string) {
     if (!this.selectedLineId) {
-      this.dockContentEl.innerHTML = `<div class="dock-empty-state"><p>${message}</p></div>`;
+      this.dockContentEl.innerHTML = `<div class="dock-empty-state"><p>${escapeHtml(message)}</p></div>`;
     }
   }
 
