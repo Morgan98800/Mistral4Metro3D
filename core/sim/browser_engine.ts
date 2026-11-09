@@ -1,7 +1,8 @@
 import { loadShapes, Shape } from './shapes_loader';
+import { withBase } from '../ui/utils';
 
 const DATA_REVISION = '20260910-09';
-const dataUrl = (path: string) => `${path}?v=${DATA_REVISION}`;
+const dataUrl = (path: string) => `${withBase(path)}?v=${DATA_REVISION}`;
 import { TripData, getCoordAtDistance, getSmoothedBearing } from './kinematics';
 import { normalizeStopName } from '@core/rt/stop_names';
 import type { RealtimeAdapter, RealtimeStatusBase } from '@core/rt/adapter';

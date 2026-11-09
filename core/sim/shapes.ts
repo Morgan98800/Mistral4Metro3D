@@ -7,12 +7,13 @@ import {
   type Shape,
   type ShapeIndex,
 } from './shapes_loader';
+import { withBase } from '../ui/utils';
 
 export type ShapeData = Shape;
 export type ShapeEntry = Shape;
 
 export async function loadShapesBin(
-  url: string = '/data/shapes.bin'
+  url: string = withBase('/data/shapes.bin')
 ): Promise<Map<string, ShapeEntry>> {
   return loadShapes(url);
 }

@@ -12,6 +12,8 @@
  *       ne stocke plus la distance, qui se déduit du pas de rééchantillonnage.
  */
 
+import { withBase } from '../ui/utils';
+
 export interface Shape {
   id: string;
   /** [lng, lat, lng, lat, ...] en degrés */
@@ -34,7 +36,7 @@ const pendingRequests = new Map<string, Promise<ShapeIndex>>();
  * Charge et décode les tracés. Appelable depuis n'importe quel module :
  * le téléchargement n'a lieu qu'une fois par URL distincte.
  */
-export function loadShapes(url = '/data/shapes.bin'): Promise<ShapeIndex> {
+export function loadShapes(url = withBase('/data/shapes.bin')): Promise<ShapeIndex> {
   const existing = pendingRequests.get(url);
   if (existing) return existing;
 

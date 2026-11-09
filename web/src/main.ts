@@ -17,10 +17,10 @@ import '@core/ui/styles/chrome.css';
 import { TopBar } from '@core/ui/components/header';
 import { auditLineContrast, LineLike, lineBadge } from '@core/ui/components/line_badge';
 import { FollowCamera } from '@core/ui/map/follow_camera';
-import { escapeHtml } from '@core/ui/utils';
+import { escapeHtml, withBase } from '@core/ui/utils';
 
 const DATA_REVISION = '20260910-07';
-const dataUrl = (path: string) => `${path}?v=${DATA_REVISION}`;
+const dataUrl = (path: string) => `${withBase(path)}?v=${DATA_REVISION}`;
 
 type Coordinate = [number, number];
 
@@ -145,7 +145,7 @@ function openMethodologyModal() {
         </p>
       <div class="method-footer">
         <span class="method-footer-label">Page statique indexable</span>
-        <a href="/methode" target="_blank" rel="noopener" class="method-footer-link">Consulter la page méthode complète →</a>
+        <a href="${withBase('/methode')}" target="_blank" rel="noopener" class="method-footer-link">Consulter la page méthode complète →</a>
       </div>
     </div>
   `;
@@ -274,7 +274,7 @@ function openAboutModal(activeCityConfig: CityConfig = parisConfig) {
           <div class="about-item__content">
             <h3 class="about-item__title">Mentions</h3>
             <p class="about-item__text">${escapeHtml(attrib.disclaimer)}</p>
-            <a href="/methode" target="_blank" rel="noopener" class="about-item__link">Consulter la méthode complète <span aria-hidden="true">→</span></a>
+            <a href="${withBase('/methode')}" target="_blank" rel="noopener" class="about-item__link">Consulter la méthode complète <span aria-hidden="true">→</span></a>
           </div>
         </section>
       </div>

@@ -5,7 +5,7 @@ import type {
   RealtimeProvider,
   ScheduleModel,
 } from '@core/config';
-import { escapeHtml } from '../utils';
+import { escapeHtml, withBase } from '../utils';
 
 export interface CityItem {
   id: string;
@@ -155,7 +155,7 @@ export class TopBar {
       li.setAttribute('role', 'none');
 
       const link = document.createElement('a');
-      link.href = `/${city.slug}`;
+      link.href = withBase(`/${city.slug}`);
       link.className = 'topbar__menu-item';
       link.setAttribute('role', 'menuitem');
       link.dataset.cityId = city.id;

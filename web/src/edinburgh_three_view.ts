@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import type { TrainMarker } from '@core/ui/map/trains_layer';
+import { withBase } from '@core/ui/utils';
 
 export interface EdinburghThreeViewHandle {
   destroy: () => void;
@@ -120,7 +121,7 @@ export function initEdinburghThreeView(
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
 
-  loader.load('/cities/edinburgh/models/edinburgh_city.glb', (gltf) => {
+  loader.load(withBase('/cities/edinburgh/models/edinburgh_city.glb'), (gltf) => {
     const city = gltf.scene;
     city.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
@@ -229,7 +230,7 @@ export function initEdinburghThreeView(
   const tracksGroup = new THREE.Group();
   scene.add(tracksGroup);
 
-  fetch('/cities/edinburgh/data/tracks.json')
+  fetch(withBase('/cities/edinburgh/data/tracks.json'))
     .then((r) => r.json())
     .then((tracks: Array<{ line_id: string; stroke: string; coordinates: [number, number][] }>) => {
       for (const track of tracks) {
@@ -366,7 +367,7 @@ export function initEdinburghThreeView(
   const renderedTrains = new Map<string, RenderedTrain>();
   let followedTrainId: string | null = null;
 
-  loader.load('/cities/edinburgh/models/automotrice_ecossaise.glb', (gltf) => {
+  loader.load(withBase('/cities/edinburgh/models/automotrice_ecossaise.glb'), (gltf) => {
     trainPrototype = gltf.scene;
 
     trainPrototype.traverse((child) => {

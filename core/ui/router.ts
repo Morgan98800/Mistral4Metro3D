@@ -1,3 +1,5 @@
+import { stripBase, withBase } from './utils';
+
 export interface RouteParams {
   city: string;
   lineShortName: string | null;
@@ -34,7 +36,7 @@ export class SubwayRouter {
     } catch {
       // ignore storage failure in private browsing
     }
-    const newPath = `/${encodeURIComponent(city)}`;
+    const newPath = withBase(`/${encodeURIComponent(city)}`);
     if (window.location.pathname !== newPath) {
       window.history.pushState({ city, lineShortName: null, dir: '0' }, '', newPath);
       this.onRouteChange(this.parseCurrentUrl());
@@ -49,9 +51,11 @@ export class SubwayRouter {
       // ignore
     }
 
-    let newPath = `/${encodeURIComponent(activeCity)}`;
+    let newPath = withBase(`/${encodeURIComponent(activeCity)}`);
     if (lineShortName) {
-      newPath = `/${encodeURIComponent(activeCity)}/ligne/${encodeURIComponent(lineShortName)}?dir=${encodeURIComponent(dir)}`;
+      newPath = withBase(
+        `/${encodeURIComponent(activeCity)}/ligne/${encodeURIComponent(lineShortName)}?dir=${encodeURIComponent(dir)}`
+      );
     }
 
     if (window.location.pathname + window.location.search !== newPath) {
@@ -60,7 +64,7 @@ export class SubwayRouter {
   }
 
   private ensureCityPath(): void {
-    const pathname = window.location.pathname;
+    const pathname = stripBase(window.location.pathname);
     if (pathname === '/' || pathname === '') {
       let lastCity = 'paris';
       try {
@@ -72,13 +76,13 @@ export class SubwayRouter {
       window.history.replaceState(
         { city: lastCity, lineShortName: null, dir: '0' },
         '',
-        `/${lastCity}`
+        withBase(`/${lastCity}`)
       );
     }
   }
 
   public parseCurrentUrl(): RouteParams {
-    const pathname = window.location.pathname;
+    const pathname = stripBase(window.location.pathname);
     const searchParams = new URLSearchParams(window.location.search);
     const dir = searchParams.get('dir');
 

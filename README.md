@@ -1,6 +1,7 @@
 # 🌍 GlobalMetro3D — Visualiseur 3D temps réel des réseaux de transport
 
 [![Site en direct](https://img.shields.io/badge/Site%20en%20Direct-parisian3dsubway.netlify.app-00DC82?style=flat-square&logo=netlify)](https://parisian3dsubway.netlify.app)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-morgan98800.github.io%2FMistral4Metro3D-181717?style=flat-square&logo=github)](https://morgan98800.github.io/Mistral4Metro3D/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![deck.gl](https://img.shields.io/badge/deck.gl-9.1-blue?style=flat-square)](https://deck.gl/)
 [![MapLibre GL](https://img.shields.io/badge/MapLibre%20GL-4.7-2980b9?style=flat-square)](https://maplibre.org/)
@@ -8,7 +9,7 @@
 
 Application web cartographique modélisant en temps réel la circulation des réseaux de **Paris (métro + RER), Montréal, Londres, Lille, Washington DC, Berlin et Édimbourg** sur des jumeaux numériques 3D (MapLibre GL + deck.gl, données GTFS + flux temps réel).
 
-Accès direct en production : **[https://parisian3dsubway.netlify.app](https://parisian3dsubway.netlify.app)**
+Accès direct en production : **[https://parisian3dsubway.netlify.app](https://parisian3dsubway.netlify.app)** (Netlify, avec relais temps réel `/api/*`) · version GitHub Pages : **[https://morgan98800.github.io/Mistral4Metro3D/](https://morgan98800.github.io/Mistral4Metro3D/)** (déployée par `.github/workflows/pages.yml`, mode horaires théoriques GTFS sans relais serverless)
 
 ---
 

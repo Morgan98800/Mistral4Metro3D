@@ -32,6 +32,7 @@ export default defineConfig({
       input: {
         main: path.resolve(__dirname, 'index.html'),
         methode: path.resolve(__dirname, 'methode.html'),
+        notFound: path.resolve(__dirname, '404.html'),
       },
     },
   },

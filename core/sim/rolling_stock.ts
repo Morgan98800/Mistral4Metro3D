@@ -1,3 +1,5 @@
+import { withBase } from '../ui/utils';
+
 export interface RollingStockModel {
   model_id: string;
   name: string;
@@ -44,7 +46,7 @@ export interface RollingStockDatabase {
 }
 
 export async function loadRollingStock(
-  url: string = '/data/rolling-stock.json'
+  url: string = withBase('/data/rolling-stock.json')
 ): Promise<RollingStockDatabase> {
   const res = await fetch(url);
   if (!res.ok) {
